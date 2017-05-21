@@ -10,19 +10,19 @@ db.init_app(app)
 
 
 #
-#   /sense
+#   /sense [POST]
 #
 #   This route receives a json with the current
 #   Navigation information from the user.
 #
 #   user information should be sent in the format
 #    {
-#      "username": "john" // you can pick your username an
+#      "username": "john" //(String) you can pick your username an
 #                            don't forget to tell me who you are.
-#      "speed": 45, //In Kilometers per hour.
-
-#      "location": "45,45", // Gelocalization
-#      "mode_of_transportation": "car"  // Car
+#      "speed": 45, //(Int) In Kilometers per hour.
+#      "bearing": "45.678", //(Float) direction of movement.
+#      "location": "45,45", // (String) Gelocalization.
+#      "mode_of_transportation": "car"  // (String)Car,
 #    }
 #
 
