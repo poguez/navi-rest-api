@@ -1,0 +1,101 @@
+import datetime, sys
+
+from flask import Flask, jsonify, abort, request
+from slugify import slugify
+from models import UserMeasurement, AlertSent, db
+
+app = Flask(__name__)
+app.config ["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:postgres@localhost:5432/navi_voice_assistant'
+db.init_app(app)
+
+
+#
+#   /sense
+#
+#   This route receives a json with the current
+#   Navigation information from the user.
+#
+#   user information should be sent in the format
+#    {
+#      "username": "john" // you can pick your username an
+#                            don't forget to tell me who you are.
+#      "speed": 45, //In Kilometers per hour.
+
+#      "location": "45,45", // Gelocalization
+#      "mode_of_transportation": "car"  // Car
+#    }
+#
+
+@app.route('/sense', methods=['POST'])
+def create_user_measurement():
+    try:
+        user_json = request.get_json(force=True)
+        if not {"username", "speed", "location", "bearing", "mode_of_transportation"} <= set(user_json):
+            raise ValueError
+        user_json["username"] = slugify(user_json["username"])
+        user_measurement = UserMeasurement(username=user_json["username"],
+                                           speed= int(user_json["speed"]),
+                                           bearing= float(user_json["bearing"]),
+                                           location=user_json["location"],
+                                           mode_of_transportation= user_json["mode_of_transportation"])
+        db.session.add(user_measurement)
+        db.session.commit()
+        
+        our_response = user_json
+    
+    except KeyError:
+        abort(404)
+    except ValueError:
+        example_request ={
+                            "username": "Mr. Robot",
+                            "speed": "45",
+                            "bearing": "45.678",
+                            "location": "45,45",
+                            "mode_of_transportation": "car"
+                           }
+        return "Your request should contain a JSON as like the following example: \n" + str(example_request), 400
+                          
+    return jsonify(our_response)
+
+
+#
+#   /
+#
+#   Say Hi, don't be rude.
+#
+
+@app.route('/')
+def hello_world():
+    return jsonify({"message": 'Hello to the future!'})
+
+#
+#   /alert
+#
+#    It creates a dummy response for you.
+#
+@app.route('/alert', methods=['GET'])
+def get_demo_alert():
+    try:
+        our_response = create_demo_alert()
+    except KeyError:
+        abort(404)
+    return jsonify(our_response)
+    
+
+def create_demo_alert():
+    demo_alert = {
+        "timestamp": datetime.datetime.now(),
+        "warning_text": "Be careful, Minsoo! At 100 meters ahead, you are approaching a dangerous area where there have been many accidents involving pedestrians. The recommended speed is 30 km/h.",
+        "risk_level": "low"
+    }
+    return demo_alert
+
+
+if __name__ == '__main__':
+    # python navi_voice_assistant_api.py createdb
+    if "createdb" in sys.argv:
+        with app.app_context():
+            db.create_all()
+        print("Database created!")
+    else:
+        app.run(debug=True, host="0.0.0.0")
