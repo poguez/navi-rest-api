@@ -42,7 +42,7 @@ def create_user_measurement():
                                            mode_of_transportation= user_json["mode_of_transportation"])
         db.session.add(user_measurement)
         db.session.commit()
-        our_response = lambda create_demo_alert("no_alert")
+        our_response = create_demo_alert("no_alert")
         
     except KeyError:
         abort(404)
