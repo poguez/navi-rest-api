@@ -30,19 +30,20 @@ db.init_app(app)
 def create_user_measurement():
     try:
         user_json = request.get_json(force=True)
-        if not {"username", "speed", "location", "bearing", "mode_of_transportation"} <= set(user_json):
+        print user_json
+        if not {"username", "speed", "latitude", "longitude", "bearing", "mode_of_transportation"} <= set(user_json):
             raise ValueError
         user_json["username"] = slugify(user_json["username"])
         user_measurement = UserMeasurement(username=user_json["username"],
-                                           speed= int(user_json["speed"]),
+                                           speed= user_json["speed"],
                                            bearing= float(user_json["bearing"]),
-                                           location=user_json["location"],
+                                           latitude=user_json["latitude"],
+                                           longitude=user_json["longitude"],
                                            mode_of_transportation= user_json["mode_of_transportation"])
         db.session.add(user_measurement)
         db.session.commit()
+        our_response = lambda create_demo_alert("no_alert")
         
-        our_response = user_json
-    
     except KeyError:
         abort(404)
     except ValueError:
@@ -50,7 +51,8 @@ def create_user_measurement():
                             "username": "Mr. Robot",
                             "speed": "45",
                             "bearing": "45.678",
-                            "location": "45,45",
+                            "latitude": "45.01225",
+                            "longitude": "45.45312",
                             "mode_of_transportation": "car"
                            }
         return "Your request should contain a JSON as like the following example: \n" + str(example_request), 400
@@ -73,7 +75,7 @@ def hello_world():
 #
 #    It creates a dummy response for you.
 #
-@app.route('/alert', methods=['GET'])
+@app.route('/alert', methods=['GET', 'POST'])
 def get_demo_alert():
     try:
         our_response = create_demo_alert()
@@ -82,13 +84,22 @@ def get_demo_alert():
     return jsonify(our_response)
     
 
-def create_demo_alert():
-    demo_alert = {
+def create_demo_alert(alert_type="no_alert"):
+    
+    alert = {
+        "no_alert" : {
+        "timestamp": datetime.datetime.now(),
+        "warning_text": "Be careful, Minsoo! At 100 meters ahead, you are approaching a dangerous area where there have been many accidents involving pedestrians. The recommended speed is 30 km/h.",
+        "risk_level": "none"
+        },
+        "demo_alert" : {
         "timestamp": datetime.datetime.now(),
         "warning_text": "Be careful, Minsoo! At 100 meters ahead, you are approaching a dangerous area where there have been many accidents involving pedestrians. The recommended speed is 30 km/h.",
         "risk_level": "low"
+        }
     }
-    return demo_alert
+    
+    return alert.get(alert_type)
 
 
 if __name__ == '__main__':

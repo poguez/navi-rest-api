@@ -21,7 +21,8 @@ class UserMeasurement(db.Model):
     username = db.Column(db.String(64), nullable=False, index=True)
     speed = db.Column(db.String(64), nullable=False, index=True)
     bearing= db.Column(db.Float, nullable=False)
-    location = db.Column(db.String(64), index=True, nullable=False)
+    latitude = db.Column(db.String(64), index=True, nullable=False)
+    longitude = db.Column(db.String(64), index=True, nullable=False)
     mode_of_transportation = db.Column(db.String(64), index=True, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
